@@ -41,7 +41,7 @@ The central finding: **For Gemma-2-2B, fine-tuning vastly outperforms prompting 
 - Decoder-only transformer (GPT-style)
 - Causal masking, autoregressive prediction
 - Instruction-tuned for prompt following
-- Small enough for consumer GPU training (Google Colab T4)
+- Small enough for consumer GPU training (Google Colab L4)
 
 ### Datasets and Splits
 
@@ -120,7 +120,7 @@ where B ∈ ℝ^(d×r), A ∈ ℝ^(r×k), rank r=8
 - Rank: r=8, alpha=16
 - Training: 2 epochs, batch size 8 (via gradient accumulation)
 - Optimizer: AdamW, lr=2×10⁻⁴
-- Time: ~90 minutes on T4 GPU
+- Time: ~90 minutes on L4 GPU
 
 **Memory optimizations:**
 - FP16 mixed precision
@@ -221,7 +221,7 @@ The takeaway: Techniques that work on massive models don't necessarily transfer 
 ### 4. Practical Trade-offs
 
 **Fine-tuning cost:**
-- One-time: 90 minutes on T4 GPU
+- One-time: 90 minutes on L4 GPU
 - Adapter size: 12.8 MB
 - Same inference speed as base model (merge adapters)
 
@@ -239,7 +239,7 @@ For production systems, 90 minutes of training is trivial compared to ongoing ac
 ### Technologies
 - **Framework**: PyTorch 2.0 + Hugging Face Transformers
 - **Training**: PEFT library (LoRA)
-- **Hardware**: Google Colab T4 GPU (16GB VRAM)
+- **Hardware**: Google Colab L4 GPU
 
 ### Memory Optimizations for 16GB GPU
 

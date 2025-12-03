@@ -37,7 +37,7 @@ We implement algorithms from the Formal Algorithms for Transformers paper [Phuon
 
 ### Model Architecture
 
-**Gemma-2-2B-it** (2.5B parameters)
+**Gemma-2-2B-it** (2.6B parameters)
 - Decoder-only transformer (GPT-style)
 - Causal masking, autoregressive prediction
 - Instruction-tuned for prompt following
@@ -261,7 +261,7 @@ This work reveals a critical interaction between model scale and optimal adaptat
 
 ### 2. LoRA Validates Low-Rank Hypothesis
 
-- Updated only 0.12% of parameters (3.2M / 2.5B)
+- Updated only 0.12% of parameters (3.2M / 2.6B)
 - Achieved 67% accuracy (14.4% gain over zero-shot)
 - Rank r=8 sufficient - suggests most adaptation information lies in low-dimensional subspace
 - Efficient enough for consumer GPU (90 minutes, 12.8 MB adapter)
@@ -297,7 +297,7 @@ For production systems requiring reliable sentiment analysis, the fine-tuning in
 
 ### Memory Optimization Techniques
 
-Fitting a 2.5B parameter model on consumer GPU required several optimizations:
+Fitting a 2.6B parameter model on consumer GPU required several optimizations:
 
 ```python
 training_args = TrainingArguments(

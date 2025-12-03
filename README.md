@@ -4,19 +4,14 @@
 
 ---
 
-## 📋 Table of Contents
-- [Problem Statement](#problem-statement)
-- [Methodology](#methodology)
-- [Implementation](#implementation)
-- [Results & Evaluation](#results--evaluation)
-- [Critical Analysis](#critical-analysis)
-- [Model & Data Cards](#model--data-cards)
-- [Resources & Links](#resources--links)
-- [How to Run](#how-to-run)
+**Author**: Laura Li
+**Course**: Generative AI Models in Theory and Practice
+**Institution**: Vanderbilt University
+**Date**: December 4th, 2025
 
 ---
 
-## 🎯 Problem Statement
+## Problem Statement
 
 ### The Challenge
 Large Language Models (LLMs) show impressive zero-shot capabilities, but often fall short on domain-specific tasks. The **Formal Algorithms for Transformers** paper [Phuong & Hutter, 2022] describes two primary methods for adaptation:
@@ -45,7 +40,7 @@ This work is motivated by two key insights:
 
 ---
 
-## 🔬 Methodology
+## Methodology
 
 This project applies key techniques from the course curriculum, with direct connections to the **Formal Algorithms for Transformers** [Phuong & Hutter, 2022]:
 
@@ -169,7 +164,7 @@ Our results confirm this:
 
 ---
 
-## 💻 Implementation
+## Implementation
 
 ### Core Technologies
 - **Model**: `google/gemma-2-2b-it` via Hugging Face Transformers
@@ -339,7 +334,7 @@ project/
 
 ---
 
-## 📊 Results & Evaluation
+## Results & Evaluation
 
 ### Performance Comparison
 
@@ -407,7 +402,7 @@ This demonstrates strong generalization despite domain shift (restaurant reviews
 
 ---
 
-## 🔍 Critical Analysis
+## Critical Analysis
 
 ### What is the Impact of This Project?
 
@@ -681,12 +676,8 @@ This project validates several theoretical concepts from the course:
 
 ---
 
-## 🔗 Resources & Links
-
-### Code Repository
-- **GitHub**: [github.com/yourusername/prompt-vs-finetune](https://github.com/yourusername/prompt-vs-finetune) _(replace with actual link)_
-- **Google Colab**: [Complete Notebook](https://colab.research.google.com/...) _(add your shared notebook link)_
-
+## Resources & Links
+  
 ### Datasets
 - [Yelp Review Full Dataset](https://huggingface.co/datasets/Yelp/yelp_review_full)
 - [Amazon Fine-Grained Reviews (Kaggle)](https://www.kaggle.com/datasets/kritanjalijain/amazon-reviews)
@@ -698,14 +689,13 @@ This project validates several theoretical concepts from the course:
 
 ### Core Course Papers
 
-**1. Formal Algorithms for Transformers** (Primary Reference)
+**1. Formal Algorithms for Transformers** 
 - **Phuong, M., & Hutter, M. (2022).** *Formal Algorithms for Transformers*. arXiv:2207.09238 [cs.LG]
 - **Link**: [https://arxiv.org/abs/2207.09238](https://arxiv.org/abs/2207.09238)
 - **Key Sections**:
   - Section 6: Transformer architectures (Algorithm 10: DTransformer)
   - Section 7: Training and inference (Algorithms 13-14)
   - Section 5: Attention mechanism (Algorithms 4-5)
-- **Project Connection**: Our implementation directly follows Algorithm 10 (decoder-only transformer), Algorithm 13 (training via gradient descent), and Algorithm 14 (inference with temperature sampling)
 
 **2. LoRA: Low-Rank Adaptation of Large Language Models**
 - **Hu, E. J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L., & Chen, W. (2021).** *LoRA: Low-Rank Adaptation of Large Language Models*. arXiv:2106.09685 [cs.CL]
@@ -714,7 +704,7 @@ This project validates several theoretical concepts from the course:
   - Section 4.1: Low-rank parametrization (ΔW = BA)
   - Section 4.2: Applying LoRA to Transformer attention weights
   - Section 7: Understanding low-rank updates (rank analysis)
-- **Project Connection**: We implement LoRA with r=8 on Gemma-2-2B attention layers (Wq, Wv), achieving 0.12% trainable parameters with +14-17% accuracy gains
+- **Project Connection**: implemented LoRA with r=8 on Gemma-2-2B attention layers (Wq, Wv), achieving 0.12% trainable parameters with +14-17% accuracy gains
 
 ### Key Papers & References
 
@@ -735,30 +725,9 @@ This project validates several theoretical concepts from the course:
 7. **Attention Mechanism**:
    - Vaswani et al. (2017) - [Attention is All You Need](https://arxiv.org/abs/1706.03762)
 
-### Theoretical Foundations
-
-8. **Low Intrinsic Dimension**:
-   - Li et al. (2018) - [Measuring the Intrinsic Dimension of Objective Landscapes](https://arxiv.org/abs/1804.08838)
-   - Aghajanyan et al. (2020) - [Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning](https://arxiv.org/abs/2012.13255)
-
-9. **Sentiment Analysis Surveys**:
-   - Zhang et al. (2018) - [Deep Learning for Sentiment Analysis: A Survey](https://arxiv.org/abs/1801.07883)
-   - Minaee et al. (2021) - [Deep Learning Based Text Classification: A Comprehensive Review](https://arxiv.org/abs/2004.03705)
-
-### Related Efficient Adaptation Methods
-
-10. **Adapter Tuning**:
-    - Houlsby et al. (2019) - [Parameter-Efficient Transfer Learning for NLP](https://arxiv.org/abs/1902.00751)
-
-11. **Prefix Tuning**:
-    - Li & Liang (2021) - [Prefix-Tuning: Optimizing Continuous Prompts for Generation](https://arxiv.org/abs/2101.00190)
-
-12. **Prompt Engineering**:
-    - Liu et al. (2023) - [Pre-train, Prompt, and Predict: A Systematic Survey of Prompting Methods](https://arxiv.org/abs/2107.13586)
-
 ---
 
-## 🚀 How to Run
+## How to Run
 
 ### Prerequisites
 ```bash
@@ -826,7 +795,7 @@ python inference.py --method finetuned --model_path ./yelp_lora_r8 --dataset ama
 
 ---
 
-## 📈 Visualization & Figures
+## Visualization & Figures
 
 ### Performance Comparison Chart
 ```
@@ -854,16 +823,16 @@ True ↓
 
 ---
 
-## 🏆 Conclusion
+## Conclusion
 
 This project demonstrates that **fine-tuning with LoRA provides substantial, reproducible improvements** over prompting strategies for sentiment classification on smaller language models:
 
 ### Key Results
-✅ **+14.4% in-domain accuracy gain** (Yelp: 52.9% → 67.3%)  
-✅ **+17.7% cross-domain accuracy gain** (Amazon: 42.7% → 60.4%)  
-✅ **Strong transfer learning** across review types  
-✅ **Dramatically improved output reliability** (95%+ parseable vs. 9-56% for few-shot)  
-✅ **Parameter-efficient**: Only 0.12% additional parameters (3.2M / 2.5B)  
+ **+14.4% in-domain accuracy gain** (Yelp: 52.9% → 67.3%)  
+ **+17.7% cross-domain accuracy gain** (Amazon: 42.7% → 60.4%)  
+ **Strong transfer learning** across review types  
+ **Dramatically improved output reliability** (95%+ parseable vs. 9-56% for few-shot)  
+ **Parameter-efficient**: Only 0.12% additional parameters (3.2M / 2.5B)  
 
 ### Validation of Course Concepts
 
@@ -889,19 +858,16 @@ This project empirically validates several theoretical frameworks from the cours
 
 ### Practical Implications
 
-**For Practitioners**:
 - **Deployment**: Fine-tuning (90 min, +14-17% accuracy) justified for production systems
 - **Model Selection**: Smaller models (<7B params) → prioritize fine-tuning over prompting
 - **Cross-Domain**: Single adapter generalizes across domains (Yelp→Amazon: 60.4%)
 - **Infrastructure**: Consumer GPU sufficient (T4 16GB) with LoRA + gradient checkpointing
-
-**For Researchers**:
 - **Attention Mechanism**: Wq, Wv adaptation sufficient; MLP layers can remain frozen
 - **Rank Selection**: r=8 captures task-specific information for 5-way classification
 - **Output Reliability**: Fine-tuning dramatically reduces parsing failures (1,331 → 146)
 - **Transfer Learning**: Low-rank adapters learn domain-agnostic sentiment patterns
 
-### Theoretical Contributions
+### Interpretation
 
 1. **Model Size Dependency**: Established empirical threshold where few-shot becomes beneficial
    - **Finding**: Gemma-2B fails at few-shot; literature suggests 7B+ threshold
@@ -931,35 +897,11 @@ The computational cost (~90 minutes training, 3.2M parameters) is justified by:
 
 ---
 
-### Course Alignment Summary
-
-| **Course Topic** | **Implementation** | **Validation** |
-|-----------------|-------------------|----------------|
-| Transformer Architecture (Section 6) | Gemma-2-2B decoder-only | Algorithm 10 working |
-| Training Procedures (Section 7) | DTraining with SGD | Algorithm 13 working |
-| Inference Methods (Section 7) | Temperature sampling | Algorithm 14 working |
-| Attention Mechanism (Section 5) | LoRA on Wq, Wv | Algorithm 5 sufficient |
-| LoRA Theory (Hu et al. 2021) | r=8 adapters | Low-rank hypothesis ✓ |
-| Few-Shot Learning (Brown et al. 2020) | 4-shot degradation | Size dependency revealed |
-
-**This project serves as an empirical validation of formal transformer algorithms and low-rank adaptation theory, demonstrating practical applications of course concepts on real-world sentiment classification tasks.**
-
----
-
-## 📧 Contact & Acknowledgments
-
-**Author**: [Your Name]  
-**Course**: [Course Name & Number]  
-**Institution**: [University Name]  
-**Date**: December 2024
-
 ### Acknowledgments
 - **Google DeepMind** for the Gemma-2 model and Colab infrastructure
 - **Hugging Face** for Transformers, PEFT, and Datasets libraries
 - **Yelp** for the review dataset via Yelp Dataset Challenge
 - **Kaggle community** for Amazon review dataset curation
-- **Phuong & Hutter (2022)** for the Formal Algorithms for Transformers paper
-- **Hu et al. (2021)** for the LoRA paper and PEFT methodology
 
 ---
 

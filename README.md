@@ -58,15 +58,47 @@ This project applies key techniques from the course curriculum, with direct conn
 #### Zero-Shot Baseline (Algorithm 14: DInference with τ=0.1)
 ```python
 Classify the sentiment of the following review on a scale of 1 to 5:
-1 = Very Negative, 2 = Negative, 3 = Neutral, 4 = Positive, 5 = Very Positive
+1 = Very Negative
+2 = Negative
+3 = Neutral
+4 = Positive
+5 = Very Positive
 
 Review: {text}
+
 Sentiment (1-5):
 ```
 
 **Course Connection**: Direct application of Algorithm 14 (DInference) - prompting a trained decoder-only model for prediction without parameter updates.
 
 #### Few-Shot Learning (4-shot)
+```
+Classify the sentiment of reviews on a scale of 1 to 5:
+1 = Very Negative
+2 = Negative
+3 = Neutral
+4 = Positive
+5 = Very Positive
+
+Here are some examples:
+
+Review: {example_1_text}
+Sentiment: {example_1_label}
+
+Review: {example_2_text}
+Sentiment: {example_2_label}
+
+Review: {example_3_text}
+Sentiment: {example_3_label}
+
+Review: {example_4_text}
+Sentiment: {example_4_label}
+
+Now classify this review:
+
+Review: {text}
+Sentiment:
+```
 - Selected stratified examples (1 per class) from training data
 - Appends examples to context before query
 - **Limitation**: Increases sequence length, reducing tokens available for actual task

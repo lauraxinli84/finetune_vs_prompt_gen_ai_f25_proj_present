@@ -4,10 +4,10 @@
 
 ---
 
-**Author**: Laura Li
-**Course**: Generative AI Models in Theory and Practice
-**Institution**: Vanderbilt University
-**Date**: December 4th, 2025
+**Author**: Laura Li  
+**Course**: Generative AI Models in Theory and Practice  
+**Institution**: Vanderbilt University  
+**Date**: December 4th, 2025  
 
 ---
 

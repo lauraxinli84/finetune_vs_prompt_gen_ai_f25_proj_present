@@ -426,5 +426,3 @@ However, this answer is model-scale dependent. Findings from massive models like
 5. Devlin, J., et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. *ACL 2019*.
 
 ---
-
-**Questions?**

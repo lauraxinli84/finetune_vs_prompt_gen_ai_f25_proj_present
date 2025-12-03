@@ -321,29 +321,51 @@ tokenizer = AutoTokenizer.from_pretrained("google/gemma-2-2b-it")
 
 **Course Connection**: Section 4 describes tokenization methods. Gemma uses byte-pair encoding (BPE), which balances vocabulary size and sequence length.
 
-### Code Structure
+### Code Structure  
+All code was implemented in a single Google Colab notebook with the following logical sections:  
 ```
-project/
-├── data_loading.py          # Dataset loading and preprocessing
-├── data_splits.py           # Stratified train/val/test creation (Section 3)
-├── prompting.py             # Zero-shot and few-shot prompts (Algorithm 14)
-├── evaluation.py            # Metrics calculation and reporting
-├── lora_training.py         # Fine-tuning with LoRA (Algorithm 13)
-├── inference.py             # Model evaluation on test sets (Algorithm 14)
-└── results/                 # Saved models and metrics
-    ├── yelp_lora_r8/       # LoRA checkpoint: only BA matrices
-    └── evaluation_results.json
+Colab Notebook Structure:
+├── 1. Setup & Dependencies
+│   └── Install libraries (transformers, peft, datasets, sklearn)
+│
+├── 2. Data Loading & Preprocessing
+│   ├── Load Yelp dataset from Hugging Face
+│   ├── Load Amazon dataset from Google Drive CSV
+│   ├── Subsample Amazon to 200k samples
+│   └── Verify class distributions
+│
+├── 3. Data Splitting
+│   ├── create_splits() function (stratified sampling)
+│   └── Create 5k train / 1k val / 3k test per dataset
+│
+├── 4. Model Setup
+│   ├── Load Gemma-2-2B-it base model
+│   └── Configure tokenizer
+│
+├── 5. Zero-Shot Evaluation
+│   ├── create_zero_shot_prompt()
+│   ├── generate_prediction()
+│   ├── extract_rating()
+│   └── evaluate_zero_shot() on Yelp & Amazon
+│
+├── 6. Few-Shot Evaluation
+│   ├── select_few_shot_examples()
+│   ├── create_few_shot_prompt()
+│   ├── extract_rating_improved()
+│   └── Re-run on Yelp & Amazon with improved extraction
+│
+├── 7. LoRA Fine-Tuning
+│   ├── format_instruction() (prepare training data)
+│   ├── tokenize_function()
+│   ├── Configure LoRA (r=8, alpha=16)
+│   ├── Training with Trainer API (~90 minutes)
+│   └── Save model to Google Drive
+│
+└── 8. Fine-Tuned Evaluation
+    ├── evaluate_finetuned() on Yelp test
+    ├── evaluate_finetuned() on Amazon test (transfer)
+    └── Save all results to Google Drive
 ```
-
-### Algorithm Mapping to Code
-
-| **Formal Algorithm** | **Implementation** | **File** |
-|---------------------|-------------------|----------|
-| Algorithm 10 (DTransformer) | `AutoModelForCausalLM.from_pretrained()` | `lora_training.py` |
-| Algorithm 13 (DTraining) | `Trainer.train()` with cross-entropy loss | `lora_training.py` |
-| Algorithm 14 (DInference) | `model.generate()` with temperature | `inference.py` |
-| Algorithm 5 (MHAttention) | Modified by LoRA adapters on Wq, Wv | PEFT library |
-| Algorithm 6 (LayerNorm) | `LayerNorm` in Gemma architecture | Built into model |
 
 ### Performance Optimizations
 
@@ -620,7 +642,7 @@ This project validates several theoretical concepts from the course:
 
 ---
 
-## 📝 Model & Data Cards
+##  Model & Data Cards
 
 ### Model Card: Gemma-2-2B-it + LoRA Adapters
 
@@ -759,72 +781,13 @@ This project validates several theoretical concepts from the course:
 
 ---
 
-## How to Run
+### Reproducibility 
+**Environment**: Google Colab Pro with L4 GPU  
+**Code**: Single Jupyter notebook with sequential sections  
+**Runtime**: ~6-7 hours for complete experiment (data loading, zero-shot, few-shot, fine-tuning, evaluation)  
+**Datasets**: Yelp (Hugging Face), Amazon (Kaggle CSV)  
 
-### Prerequisites
-```bash
-# Python 3.8+
-pip install torch transformers datasets peft accelerate
-pip install scikit-learn numpy pandas tqdm
-```
-
-### 1. Setup Data
-```python
-# Load datasets (automatically downloads)
-from datasets import load_dataset
-
-yelp_full = load_dataset("Yelp/yelp_review_full")
-# Amazon: Upload CSV files to Google Drive (see notebook for paths)
-```
-
-### 2. Zero-Shot Evaluation
-```python
-# Run zero-shot baseline
-python inference.py --method zero_shot --dataset yelp --num_samples 3000
-python inference.py --method zero_shot --dataset amazon --num_samples 3000
-```
-
-### 3. Few-Shot Evaluation
-```python
-# Run 4-shot prompting
-python inference.py --method few_shot --n_shots 4 --dataset yelp --num_samples 3000
-python inference.py --method few_shot --n_shots 4 --dataset amazon --num_samples 3000
-```
-
-### 4. Fine-Tuning with LoRA
-```python
-# Train LoRA adapters on Yelp
-python lora_training.py \
-  --dataset yelp \
-  --lora_r 8 \
-  --lora_alpha 16 \
-  --epochs 2 \
-  --batch_size 1 \
-  --gradient_accumulation_steps 8 \
-  --learning_rate 2e-4 \
-  --output_dir ./yelp_lora_r8
-```
-
-### 5. Evaluate Fine-Tuned Model
-```python
-# Evaluate on Yelp test set
-python inference.py --method finetuned --model_path ./yelp_lora_r8 --dataset yelp
-
-# Evaluate on Amazon (transfer learning)
-python inference.py --method finetuned --model_path ./yelp_lora_r8 --dataset amazon
-```
-
-### Expected Runtime
-- **Zero-shot**: ~30 min per dataset (3K samples)
-- **Few-shot**: ~40 min per dataset (longer prompts)
-- **Fine-tuning**: ~90 min (2 epochs, 5K samples)
-- **Evaluation**: ~40 min per dataset
-
-### Hardware Requirements
-- **Minimum**: Google Colab Free (T4 GPU)
-- **Recommended**: 16GB VRAM GPU
-- **Memory**: LoRA adapters require ~8GB VRAM during training
-
+All results and LoRA checkpoints saved to Google Drive.
 ---
 
 ## Visualization & Figures

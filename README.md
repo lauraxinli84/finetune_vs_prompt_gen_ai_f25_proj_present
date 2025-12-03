@@ -788,6 +788,7 @@ This project validates several theoretical concepts from the course:
 **Datasets**: Yelp (Hugging Face), Amazon (Kaggle CSV)  
 
 All results and LoRA checkpoints saved to Google Drive.
+
 ---
 
 ## Visualization & Figures

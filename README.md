@@ -292,7 +292,7 @@ For production systems requiring reliable sentiment analysis, the fine-tuning in
 ### Technologies Stack
 - **Framework**: PyTorch 2.0 + Hugging Face Transformers
 - **Fine-tuning**: PEFT library (LoRA implementation)
-- **Hardware**: Google Colab Pro L4 GPU (22.5GB VRAM, newer architecture than T4)
+- **Hardware**: Google Colab Pro L4 GPU (22.5GB VRAM)
 - **Data**: Hugging Face Datasets library
 
 ### Memory Optimization Techniques
@@ -555,11 +555,3 @@ As language models proliferate across diverse applications and model scales cont
 - **PyTorch**: https://pytorch.org
 - **Google Colab**: https://colab.research.google.com
 
-### Additional Resources
-- **LoRA Paper (original)**: https://arxiv.org/abs/2106.09685
-- **Formal Algorithms Paper**: https://arxiv.org/abs/2207.09238
-- **GPT-3 Paper**: https://arxiv.org/abs/2005.14165
-
----
-
-**Questions?**

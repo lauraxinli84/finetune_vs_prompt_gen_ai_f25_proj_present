@@ -298,7 +298,7 @@ Providing exactly one example per class (0-4) ensures:
 
 **LoRA Adapter**:
 - **Rank**: r=8
-- **Target Modules**: q_proj, v_proj (query and value projections)
+- **Target Modules**: q_proj, k_proj, v_proj, o_proj (all four attention projections)
 - **Trained On**: Yelp restaurant reviews (5,000 samples)
 - **Storage**: 12.8 MB per adapter
 
@@ -307,7 +307,6 @@ Providing exactly one example per class (0-4) ensures:
 **Primary use cases**:
 - Sentiment classification of product/service reviews (1-5 star scale)
 - Cross-domain sentiment analysis (restaurant → product reviews)
-- Research on parameter-efficient fine-tuning methods
 
 **Out-of-scope**:
 - Fine-grained aspect-based sentiment analysis
@@ -318,13 +317,11 @@ Providing exactly one example per class (0-4) ensures:
 
 **Yelp Review Full**:
 - **Source**: Public Hugging Face dataset
-- **Size**: 5,000 training samples (stratified across 5 classes)
 - **Content**: Restaurant reviews in English
 - **Preprocessing**: Tokenization, truncation to 128 tokens, balanced sampling
 
 **Amazon Reviews**:
 - **Source**: Kaggle public dataset
-- **Size**: 5,000 training samples (stratified across 5 classes)
 - **Content**: Product reviews in English
 - **Usage**: Evaluation only (cross-domain transfer testing)
 
@@ -334,7 +331,7 @@ Providing exactly one example per class (0-4) ensures:
 
 ### 7.1 Key Contributions
 
-1. **Empirical validation of class coverage importance**: Demonstrated that balanced few-shot examples (5-shot vs. 4-shot for 5 classes) significantly improve performance, contradicting the assumption that any examples help equally
+1. **Empirical validation of class coverage importance**: Demonstrated that balanced few-shot examples improve performance
 
 2. **LoRA efficiency at small scale**: Confirmed low-rank adaptation hypothesis for 2B models—updating 0.12% of parameters achieves 67% accuracy (+14% over zero-shot, +8% over few-shot)
 
@@ -344,9 +341,9 @@ Providing exactly one example per class (0-4) ensures:
 
 ### 7.2 What This Reveals
 
-**About model adaptation**: The success of low-rank fine-tuning (r=8) suggests that task-specific knowledge occupies a low-dimensional subspace within the model's representation space. Pre-trained models already contain the necessary features—adaptation merely amplifies the relevant ones.
+**About in-context learning**: Small models (Gemma-2-2B-IT) show limited in-context learning capacity. While 5-shot prompting helps, gains are modest (6-10%) compared to fine-tuning (14-18%). This stands in contrast to large models (>100B params) where few-shot prompting could match fine-tuning performance.
 
-**About in-context learning**: Small models (Gemma-2-2B-IT) show limited in-context learning capacity. While 5-shot prompting helps, gains are modest (6-10%) compared to fine-tuning (14-18%). This stands in contrast to large models (>100B params) where few-shot prompting approaches fine-tuning performance.
+**About model adaptation**: The success of low-rank fine-tuning (r=8) suggests that task-specific knowledge occupies a low-dimensional subspace within the model's representation space. Pre-trained models already contain the necessary features—adaptation merely amplifies the relevant ones.
 
 **About cross-domain transfer**: The 6.9% accuracy drop from Yelp to Amazon (67.3% → 60.4%) is surprisingly small, indicating that sentiment classification is fundamentally domain-agnostic at the linguistic level, even though review content differs substantially.
 
@@ -362,7 +359,7 @@ Providing exactly one example per class (0-4) ensures:
 - Near-zero inference latency (merge weights at deployment)
 - Stable outputs (<5% parse failures) ensure reliable integration
 
-### 7.4 Limitations of This Study
+### 7.4 Limitations of This Project
 
 1. **Single model size**: Only evaluated 2B parameters; findings may not generalize to 7B, 13B, or 70B models
 2. **Single task type**: Limited to 5-class sentiment; other tasks (QA, summarization, code generation) may behave differently
@@ -431,7 +428,7 @@ pip install transformers==4.44.0 datasets==2.20.0 accelerate==0.33.0 peft==0.12.
 **Quick Start**:
 1. Clone repository and install dependencies
 2. Authenticate with Hugging Face (requires Gemma license agreement)
-3. Unzip and extract Amazon review datasets
+3. Unzip and extract Amazon review datasets (Yelp dataset is loaded through HF API)
 4. Run jupyter notebook (everything is contained in one notebook)
 
 **Hardware**:

@@ -65,7 +65,7 @@ Two domains for cross-domain evaluation:
 
 **Amazon Reviews** (Product reviews)  
 - Source: Kaggle
-- Subsampled from 3M train/650K test to 200K train/50K test
+- 5-class sentiment (1-5 stars)
 - Stratified splits: 5,000 train / 1,000 val / 3,000 test
 
 Both datasets use balanced class distributions (1,000 samples per class in training, ~600 per class in test).

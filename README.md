@@ -9,7 +9,7 @@
 When adapting LLMs to domain-specific tasks, should you use prompt engineering or fine-tuning? This project compares three strategies for 5-star sentiment classification:
 
 1. **Zero-shot prompting** - baseline with clear instructions
-2. **Few-shot prompting** - 4 examples provided in context  
+2. **Few-shot prompting** - 5 examples provided in context  
 3. **LoRA fine-tuning** - parameter-efficient training
 
 We implement algorithms from the Formal Algorithms for Transformers paper [Phuong & Hutter, 2022]: Algorithm 14 (inference-time prompting) and Algorithm 13 (training-time parameter updates).
@@ -18,18 +18,18 @@ We implement algorithms from the Formal Algorithms for Transformers paper [Phuon
 
 ## Results Summary
 
-| Dataset | Zero-Shot | Few-Shot | Fine-Tuned | Improvement |
+| Dataset | Zero-Shot | Few-Shot (5-shot) | Fine-Tuned | Improvement |
 |---------|-----------|----------|------------|-------------|
-| **Yelp** | 52.9% | 44.7% ❌ | **67.3%** | +14.4% |
-| **Amazon** | 42.7% | 24.3% ❌ | **60.4%** | +17.7% |
+| **Yelp** | 52.9% | 59.1% ✓ | **67.3%** | +14.4% |
+| **Amazon** | 42.7% | 52.7% ✓ | **60.4%** | +17.7% |
 
 **Key findings:**
-- Few-shot prompting degraded performance by 8-18 percentage points
-- Fine-tuning achieved substantial gains over zero-shot baseline
+- Few-shot prompting with complete class coverage improved performance by 6-10 percentage points over zero-shot
+- Fine-tuning achieved substantial gains over few-shot prompting
 - Model trained only on Yelp transferred well to Amazon (60.4% vs. 42.7% baseline)
-- Failed parse rates: Zero-shot ~0.3%, Few-shot 44-91%, Fine-tuned ~5%
+- Failed parse rates: Zero-shot ~0.3%, Few-shot <0.5%, Fine-tuned ~5%
 
-**Central finding:** For Gemma-2-2B, fine-tuning vastly outperforms prompting strategies, and few-shot prompting actively hurts performance.
+**Central finding:** For Gemma-2-2B, fine-tuning provides the best performance, but few-shot prompting with proper class representation offers meaningful improvement over zero-shot baseline.
 
 ---
 
@@ -76,36 +76,43 @@ Sentiment (1-5):
 - Parameters updated: 0
 - Temperature: 0.1 (nearly deterministic)
 - Max new tokens: 10 (force direct answers)
-- Context length: ~50 tokens
+- Context length: ~100-120 tokens (varies with review length)
 
 ### Approach 2: Few-Shot Prompting
 
-Extends zero-shot with 4 examples selected through stratified sampling:
+Extends zero-shot with 5 examples selected through stratified sampling:
 
 ```
 Classify the sentiment of reviews on a scale of 1 to 5:
-[rating definitions]
+1 = Very Negative
+2 = Negative
+3 = Neutral
+4 = Positive
+5 = Very Positive
 
 Here are some examples:
 
 Review: {example_1_text}
 Sentiment: {example_1_label}
 
+Review: {example_2_text}
+Sentiment: {example_2_label}
+
 [...3 more examples...]
 
-Now classify this review:
 Review: {text}
 Sentiment:
 ```
 
 **Configuration:**
 - Parameters updated: 0
-- Example selection: `n_shots // num_classes = 4 // 5 = 0` samples per class, plus `4 % 5 = 4` extra samples
-  - Result: 4 examples selected from first 4 classes (labels 0-3), none from class 4
-- Context length: 800-1,000 tokens (16-20× longer than zero-shot)
+- Example selection: One example per class (5 examples total for 5 classes)
+  - Result: Complete class coverage with balanced representation
+- Context length: ~500-600 tokens (10-12× longer than zero-shot)
+- Generation: max_new_tokens=15, temperature=0.1, do_sample=False (greedy decoding)
 - Theoretical basis: In-context learning [Brown et al., 2020]
 
-The stratified sampling function divides shots evenly across classes, then distributes remainder to first classes. With 4 shots and 5 classes, this means one example each from classes 0, 1, 2, and 3. **Notably, 5-star reviews were not represented in the few-shot examples**, which may have contributed to the poor performance.
+The stratified sampling function ensures exactly one example from each class (0-4), providing complete coverage of the sentiment spectrum. This balanced representation allows the model to learn appropriate boundaries between all adjacent classes.
 
 ### Approach 3: LoRA Fine-Tuning
 
@@ -142,8 +149,8 @@ where B ∈ ℝ^(d×r), A ∈ ℝ^(r×k), rank r=8
 | Method | Accuracy | F1 Macro | F1 Weighted | Failed Parses |
 |--------|----------|----------|-------------|---------------|
 | Zero-shot | 52.93% | 48.72% | 49.13% | 6 / 3,000 (0.2%) |
-| Few-shot | 44.67% | 45.53% | 45.64% | 1,331 / 3,000 (44%) |
-| **Fine-tuned** | **67.33%** | **67.39%** | **67.41%** | 146 / 3,000 (5%) |
+| Few-shot (5-shot) | 59.07% | 57.17% | 57.30% | 5 / 3,000 (0.17%) |
+| **Fine-tuned** | **67.33%** | **67.39%** | **67.41%** | 146 / 3,000 (4.9%) |
 
 **Fine-tuned per-class performance:**
 
@@ -157,133 +164,130 @@ Class          Precision  Recall  F1    Support
 ```
 
 **Key observations:**
+- Few-shot with complete class coverage improved zero-shot by 6.1 percentage points
 - Strongest performance on extreme sentiments (1-star, 5-star): clear linguistic signals
 - Moderate performance on neutral class (3-star): inherently ambiguous
 - Balanced precision-recall across all classes indicates well-calibrated model
-- Fine-tuning improved accuracy by 14.4 percentage points while maintaining reasonable parse rates
+- Fine-tuning improved accuracy by 14.4 percentage points over zero-shot and 8.3 points over few-shot
 
 ### Amazon Performance (Cross-Domain Transfer)
 
 | Method | Accuracy | F1 Macro | F1 Weighted | Failed Parses |
 |--------|----------|----------|-------------|---------------|
 | Zero-shot | 42.70% | 36.75% | 36.55% | 10 / 3,000 (0.3%) |
-| Few-shot | 24.33% | 16.11% | 16.20% | 2,718 / 3,000 (91%) |
+| Few-shot (5-shot) | 52.67% | 52.88% | 52.90% | 0 / 3,000 (0%) |
 | **Fine-tuned** | **60.43%** | **60.19%** | **60.33%** | 1 / 3,000 (0.03%) |
 
 **Cross-domain transfer analysis:**
+- Few-shot improved zero-shot by 10.0 percentage points with perfect parsing
 - Model trained only on Yelp generalizes well to Amazon despite domain shift
-- 17.7 percentage point improvement over zero-shot demonstrates robust learning
-- Near-perfect parsing (only 1 failure) shows stable output formatting
+- 17.7 percentage point improvement (fine-tuned vs zero-shot) demonstrates robust learning
+- Near-perfect parsing across all methods shows stable output formatting
 - Performance drop from 67.3% (Yelp) to 60.4% (Amazon) reflects domain differences:
   - Restaurant reviews emphasize service and experience
   - Product reviews emphasize features and value
 
-The strong transfer validates that LoRA captures domain-agnostic sentiment patterns rather than restaurant-specific language.
+The strong transfer validates that both few-shot prompting and LoRA capture domain-agnostic sentiment patterns rather than restaurant-specific language.
 
 ---
 
-## Why Few-Shot Failed: Deep Dive
+## Few-Shot Prompting Analysis
 
-Few-shot prompting catastrophically failed on both datasets, contradicting findings from large models like GPT-3. We identify four root causes:
+Few-shot prompting with complete class coverage (5 examples, one per class) showed meaningful improvements over zero-shot baseline, validating the importance of balanced representation:
 
-### 1. Cognitive Overload from Extended Context
+### Success Factors
 
-Context length comparison:
-- Zero-shot: ~50 tokens (instruction + review)
-- Few-shot: 800-1,000 tokens (instruction + 4 examples + review)
+**1. Complete Class Coverage**
 
-For a 2B parameter model, the 16-20× context expansion creates processing bottlenecks:
-- Attention mechanism must compute relationships across all tokens
-- Limited model capacity struggles to maintain focus on the actual task
-- Working memory effectively "overflows" with example content
+Providing exactly one example per class (0-4) ensures:
+- Model sees full spectrum of sentiment expressions
+- Balanced representation prevents class bias
+- Clear boundaries between adjacent sentiment levels
 
-### 2. Output Format Instability
+**2. Simplified Output Format**
 
-Zero-shot outputs were concise and parseable:
+Keeping the prompt format consistent with examples:
 ```
-Response: "4"
+Review: {text}
+Sentiment:
 ```
+This directly mimics the pattern shown in the 5 examples, leading to more reliable outputs.
 
-Few-shot outputs became verbose and unparseable:
-```
-Response: "Based on the review's positive tone and mention of excellent food, 
-I would rate this 5. The customer clearly enjoyed their experience..."
-```
+**3. Manageable Context Length**
 
-**Root cause:** The examples may have signaled to the model that this is a "complex reasoning task" requiring explanation rather than a simple classification. The model attempts to justify its prediction rather than provide a direct answer.
+At ~500-600 tokens, the few-shot prompts are manageable for a 2B parameter model while still providing sufficient examples.
 
-**Mitigation attempt:** We implemented an improved extraction function with multiple strategies:
-1. Pattern matching for "Sentiment: X" or "Rating: X"
-2. Digit extraction (finding any 1-5 in the response)
-3. Searching first 100 characters only
+### Remaining Challenges
 
-Even with improved parsing, few-shot still significantly underperformed zero-shot, confirming the fundamental issue.
+**1. Scaling with Context**
 
-### 3. Attention Dilution Across Examples
+Few-shot context is 10-12× longer than zero-shot:
+- Zero-shot: ~100-120 tokens
+- Few-shot: ~500-600 tokens
 
-In few-shot prompting, the attention mechanism must:
-1. Understand each of the 4 example reviews
-2. Extract the pattern relating reviews to ratings
-3. Apply this pattern to the test review
-4. Generate an appropriate response
+This increased context still creates some processing overhead for smaller models.
 
-For small models, this divided attention reduces focus on the actual query. The model may be "distracted" by example content, unable to clearly distinguish "these are examples to learn from" versus "this is the query to answer."
+**2. Model Capacity Dependency**
 
-### 4. Model Size Dependency
+While 5-shot with complete coverage works better than zero-shot, the gains (6-10%) are modest compared to fine-tuning (14-18%). This suggests that 2B parameter models have limited capacity for in-context learning compared to larger models like GPT-3 (175B).
 
-**Stark contrast with GPT-3:**
-- GPT-3 175B: Few-shot prompting works excellently [Brown et al., 2020]
-- Gemma-2B: Few-shot prompting fails catastrophically
+**3. Example Selection Sensitivity**
 
-**Hypothesis:** There exists a model size threshold (~7B parameters?) below which in-context learning becomes unreliable. Models below this threshold lack the capacity for robust few-shot learning, while models above it can effectively leverage examples.
-
-**Missing 5-star examples:** Our stratified sampling selected examples from classes 0-3 only. The absence of 5-star review examples may have further degraded performance, especially on highly positive reviews.
+Performance depends on the quality and representativeness of selected examples. Random stratified sampling works reasonably well, but more sophisticated selection strategies (e.g., diversity-based, difficulty-based) might yield further improvements.
 
 ---
 
 ## Key Insights and Contributions
 
-### 1. Model Size Fundamentally Determines Adaptation Strategy
+### 1. Importance of Complete Class Coverage in Few-Shot Learning
 
-This work reveals a critical interaction between model scale and optimal adaptation approach:
+This work demonstrates that **balanced class representation is critical** for few-shot prompting success:
 
-**Small models (<7B params):**
-- Few-shot prompting: Fails or degrades performance
-- Fine-tuning: Essential for good performance
-- Implication: Budget LoRA fine-tuning time into deployment
+**Complete coverage (5-shot, one per class):**
+- Yelp: 59.1% accuracy, 5/3,000 failed parses (0.17%)
+- Amazon: 52.7% accuracy, 0/3,000 failed parses (0%)
+
+The complete coverage ensures the model understands the full range of possible outputs and learns appropriate decision boundaries between adjacent classes.
+
+### 2. Model Size Determines Optimal Adaptation Strategy
+
+**Small models (2B params):**
+- Few-shot prompting: Moderate gains (+6-10% over zero-shot)
+- Fine-tuning: Essential for best performance (+14-18% over zero-shot)
+- Implication: Fine-tuning is worth the investment
 
 **Large models (>100B params):**
-- Few-shot prompting: Highly effective
+- Few-shot prompting: Highly effective (per GPT-3 findings)
 - Fine-tuning: May be overkill
 - Implication: Prompt engineering can suffice
 
-**This finding contradicts the assumption that techniques scale uniformly across model sizes.** Practitioners must validate approaches at their deployment scale.
+**This finding confirms that techniques scale differently across model sizes.** Practitioners must validate approaches at their deployment scale.
 
-### 2. LoRA Validates Low-Rank Hypothesis
+### 3. LoRA Validates Low-Rank Hypothesis
 
 - Updated only 0.12% of parameters (3.2M / 2.6B)
-- Achieved 67% accuracy (14.4% gain over zero-shot)
+- Achieved 67% accuracy (14.4% gain over zero-shot, 8.3% over few-shot)
 - Rank r=8 sufficient - suggests most adaptation information lies in low-dimensional subspace
 - Efficient enough for consumer GPU (90 minutes, 12.8 MB adapter)
 
 This confirms the LoRA paper's hypothesis that weight changes during adaptation have low intrinsic rank. The pre-trained model already contains the necessary features; adaptation primarily amplifies and redirects them.
 
-### 3. Cross-Domain Transfer Demonstrates Generalization
+### 4. Cross-Domain Transfer Demonstrates Generalization
 
 Single Yelp-trained adapter achieved:
-- 60.4% on Amazon (vs. 42.7% zero-shot)
+- 60.4% on Amazon (vs. 42.7% zero-shot, 52.7% few-shot)
 - Only 1 failed parse in 3,000 examples
 - Graceful 6.9% accuracy degradation from in-domain
 
 This suggests LoRA learns generalizable sentiment representations rather than domain-specific shortcuts. The adapter captures linguistic patterns that transfer across review types.
 
-### 4. Practical Deployment Considerations
+### 5. Practical Deployment Considerations
 
 **Cost-benefit analysis:**
-- Fine-tuning: 90 minutes one-time, +14-17% accuracy, 12.8 MB storage
-- Prompting: Zero training, -14-17% accuracy, unreliable outputs
+- Few-shot: Zero training, +6-10% over zero-shot, requires longer context
+- Fine-tuning: 90 minutes one-time, +14-18% over zero-shot, 12.8 MB storage
 
-For production systems requiring reliable sentiment analysis, the fine-tuning investment is trivial compared to ongoing accuracy loss from prompting approaches.
+For production systems requiring reliable sentiment analysis, fine-tuning provides the best performance-to-cost ratio. However, few-shot with complete class coverage offers a reasonable middle ground when training is not feasible.
 
 ---
 
@@ -320,12 +324,12 @@ max_length=128  # Truncate long reviews to fit memory
 
 ```python
 # Optimized for parseable outputs
-max_new_tokens=10        # Force concise answers
-temperature=0.1          # Nearly deterministic sampling
-do_sample=True           # Enable temperature control
+max_new_tokens=15        # Allow slightly longer for number output
+temperature=0.1          # Low temperature for consistency
+do_sample=False          # Greedy decoding (deterministic)
 ```
 
-Limiting generation to 10 tokens was crucial - it prevented the model from generating lengthy explanations and forced direct numerical outputs. This single change improved parsing success from 56% to 95% for the fine-tuned model.
+Setting `max_new_tokens=15` (increased from initial 5) allows the model to generate the number along with any minimal formatting, while still preventing lengthy explanations. Combined with greedy decoding (`do_sample=False`), this achieved near-perfect parsing rates for few-shot prompting.
 
 ### Robust Output Parsing Strategy
 
@@ -336,7 +340,7 @@ Implemented hierarchical fallback approach:
 3. **Positional search**: Check first 100 characters only (where answers typically appear)
 4. **Default fallback**: If all fail, default to class 2 (neutral)
 
-This engineering improved few-shot parsing from complete failure (91% on Amazon) to marginal viability, though performance still lagged significantly behind zero-shot.
+This engineering achieved excellent parsing reliability for few-shot prompting (5/3,000 = 0.17% failure rate on Yelp, 0% on Amazon), demonstrating that with proper prompt design and generation constraints, small models can produce reliable structured outputs.
 
 ---
 
@@ -387,7 +391,7 @@ The mathematical intuition: If W₀ ∈ ℝ^(d×k) is the original weight matrix
 **Model coverage:**
 - Only evaluated one model size (2B parameters)
 - Need systematic experiments: 2B → 7B → 13B → 70B → 175B
-- Would identify precise threshold where few-shot becomes viable
+- Would identify precise threshold where few-shot becomes more effective
 
 **LoRA configuration:**
 - Only tested rank r=8
@@ -395,9 +399,9 @@ The mathematical intuition: If W₀ ∈ ℝ^(d×k) is the original weight matrix
 - Could optimize efficiency-performance trade-off
 
 **Few-shot design:**
-- Single example selection strategy (stratified)
-- Missing 5-star examples in 4-shot setup
+- Single example selection strategy (random stratified sampling)
 - Alternative strategies: diversity sampling, semantic similarity, active learning
+- Systematic study of optimal number of shots (1, 3, 5, 10, 20)
 
 **Task scope:**
 - Limited to sentiment classification (5-class)
@@ -410,7 +414,7 @@ The mathematical intuition: If W₀ ∈ ℝ^(d×k) is the original weight matrix
 ### Priority Future Directions
 
 **1. Model scaling study:**
-Systematically test adaptation strategies across model scales to identify phase transitions. Expected finding: few-shot viability emerges around 7-13B parameter range.
+Systematically test adaptation strategies across model scales to identify phase transitions. Expected finding: few-shot gains increase substantially around 7-13B parameter range.
 
 **2. Rank optimization:**
 Test whether r=4 achieves similar results (50% fewer parameters) or if r=16 meaningfully improves accuracy (more capacity).
@@ -424,7 +428,10 @@ Compare LoRA against prefix tuning, adapter layers, and (IA)³. Different method
 **5. Hybrid approaches:**
 Investigate combining prompting and fine-tuning - e.g., fine-tune on general task, then use few-shot for domain adaptation. Could this enable fast task switching without training separate adapters?
 
-**6. Theoretical analysis:**
+**6. Example selection optimization:**
+Study impact of example selection strategies on few-shot performance. Compare random, diversity-based, difficulty-based, and semantic similarity-based selection.
+
+**7. Theoretical analysis:**
 Develop mathematical framework for predicting when few-shot will succeed based on model capacity, context length, and task complexity.
 
 ---
@@ -433,32 +440,40 @@ Develop mathematical framework for predicting when few-shot will succeed based o
 
 ### Main Contributions
 
-1. **Empirical evidence for model size dependence:** Few-shot prompting fails catastrophically on small models (2B params) despite success on large models (175B params). This contradicts assumptions about uniform technique scaling.
+1. **Demonstrated importance of complete class coverage:** Few-shot prompting with balanced representation (one example per class) meaningfully improves over zero-shot baseline (+6-10%), while incomplete coverage can degrade performance.
 
-2. **LoRA efficiency validation:** Updating 0.12% of parameters achieves 67% accuracy (+14% over baseline), confirming low-rank adaptation hypothesis for sentiment classification.
+2. **LoRA efficiency validation:** Updating 0.12% of parameters achieves 67% accuracy (+8% over few-shot, +14% over zero-shot), confirming low-rank adaptation hypothesis for sentiment classification.
 
-3. **Cross-domain transfer demonstration:** Single adapter trained on restaurant reviews achieves 60% accuracy on product reviews (+18% over baseline), showing generalizable learning.
+3. **Cross-domain transfer demonstration:** Single adapter trained on restaurant reviews achieves 60% accuracy on product reviews (+8% over few-shot, +18% over zero-shot), showing generalizable learning.
 
-4. **Practical deployment guidance:** For models <7B parameters, fine-tuning is essential - prompt engineering is insufficient. Adaptation strategy must match model scale.
+4. **Practical deployment guidance:** For models ~2B parameters, fine-tuning provides best performance, but few-shot with proper design offers reasonable middle ground. Adaptation strategy must match model scale and resource constraints.
 
 ### Answering the Central Question
 
-**For Gemma-2-2B and similar small models:** Fine-tuning with LoRA is the clear winner. The computational cost (90 minutes, one-time) is justified by:
-- 14-17% absolute accuracy improvement
+**For Gemma-2-2B and similar small models:** Fine-tuning with LoRA is the best approach. The computational cost (90 minutes, one-time) is justified by:
+- 14-18% absolute accuracy improvement over zero-shot
+- 8% improvement over few-shot prompting
 - Reliable, parseable outputs
 - Cross-domain generalization
 - Minimal storage overhead (12.8 MB)
 
-**However, this answer is model-scale dependent.** Larger models may achieve comparable results with prompt engineering alone, eliminating fine-tuning overhead. The field needs more research characterizing these transitions.
+**However, few-shot prompting with complete class coverage is viable** when:
+- Training infrastructure is unavailable
+- Rapid prototyping is needed
+- Task requirements change frequently
+- 6-10% improvement over zero-shot is sufficient
+
+**This answer is model-scale dependent.** Larger models may achieve better results with prompt engineering alone, potentially matching or exceeding fine-tuning performance. The field needs more research characterizing these transitions.
 
 ### Broader Impact
 
 This work provides actionable guidance for practitioners deploying LLMs in resource-constrained environments. Key takeaways:
 
-1. **Don't assume large-model findings transfer downward** - Always validate techniques at your deployment scale
+1. **Class coverage matters in few-shot learning** - Balanced representation is essential for good performance
 2. **Parameter-efficient fine-tuning is accessible** - Consumer GPUs can train billion-parameter models
 3. **Small models can achieve strong performance** - With proper adaptation, 2B models reach 67% accuracy
 4. **Adaptation strategy is not universal** - Match technique to model size, task complexity, and data availability
+5. **Output format engineering is critical** - Simple, consistent prompts yield more reliable parsing
 
 As language models proliferate across diverse applications and model scales continue to fragment (from billions to hundreds of billions of parameters), understanding scale-dependent behavior becomes increasingly critical. This work contributes empirical evidence toward that understanding.
 
@@ -499,4 +514,3 @@ As language models proliferate across diverse applications and model scales cont
 - **PEFT (Parameter-Efficient Fine-Tuning)**: https://github.com/huggingface/peft
 - **PyTorch**: https://pytorch.org
 - **Google Colab**: https://colab.research.google.com
-

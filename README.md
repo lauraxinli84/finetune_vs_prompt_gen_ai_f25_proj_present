@@ -150,16 +150,17 @@ Based on Algorithm 10 (DTransformer) from [Phuong & Hutter, 2022] with LoRA from
 for each layer ℓ ∈ [1, 96]:
     X̃ ← layer_norm(X)                          # Pre-normalization
     
-    # Attention with LoRA on Q and V projections
+    # Attention with LoRA on ALL attention projections
     Q ← W_q X̃ + B_q(A_q X̃)                    # ← LoRA HERE
-    K ← W_k X̃                                  # ← Frozen
+    K ← W_k X̃ + B_k(A_k X̃)                    # ← LoRA HERE
     V ← W_v X̃ + B_v(A_v X̃)                    # ← LoRA HERE
     
     # Compute masked attention
     S ← Q^T K / √d_attn                        # Scores
     S[i,j] ← -∞ if i > j                       # Causal masking
     Attn ← V · softmax(S)                      # Attention output
-    X ← X + W_o · Attn                         # Residual connection
+    O ← W_o · Attn + B_o(A_o · Attn)           # ← LoRA HERE
+    X ← X + O                                   # Residual connection
     
     # MLP block (fully frozen)
     X ← X + MLP(layer_norm(X))
@@ -169,35 +170,13 @@ return softmax(W_U · X)                        # Unembedding
 
 **Understanding the Algorithm**:
 
-- This pseudocode shows how LoRA modifies the standard decoder transformer.
-- In each layer's attention mechanism, the query (Q) and value (V) projections receive both the original frozen transformation (W_q X̃) and an additional low-rank transformation (B_q(A_q X̃)).
-- The key is that A_q first projects the 2048-dimensional input down to 8 dimensions, then B_q projects it back up to 2048 dimensions.
-- This "bottleneck" through rank-8 space forces the adaptation to learn a compressed, efficient representation of the task-specific changes needed.
-- All other parameters remain completely frozen, using only the knowledge from pre-training.
-- This design allows us to adapt the model's behavior while training less than 1% of its parameters.
-
-**LoRA Implementation Details**:
-
-The critical modification occurs in attention projections:
-```
-Standard:  Q = W_q X̃                          (2048×2048 = 4.2M params)
-With LoRA: Q = W_q X̃ + B_q(A_q X̃)            (2×2048×8 = 32K params)
-                       ↑
-                   Low-rank path
-```
-
-**Computation flow**:
-1. Input X̃ ∈ ℝ^(2048×n) splits into two parallel paths
-2. **Frozen path**: W_q X̃ → output ∈ ℝ^(2048×n)
-3. **LoRA path**: A_q X̃ ∈ ℝ^(8×n) → B_q(...) ∈ ℝ^(2048×n)  
-4. Outputs summed: (W_q + B_q A_q) X̃
-
-This architecture freezes 2.6B parameters while training only 3.2M, achieving 128× parameter reduction per weight matrix.
-
-**Training vs. Inference**:
-- **Training**: Compute gradients only for {A_q, B_q, A_v, B_v} across all layers
-- **Inference**: Merge weights W'_q = W_q + B_q A_q once, then use W'_q directly (zero added latency)
-
+- This pseudocode shows how LoRA modifies the standard decoder transformer by injecting trainable low-rank matrices into all four attention projection layers (query, key, value, output).
+- In each layer's attention mechanism, all four projections compute both the original frozen transformation (e.g., W_q X̃) and an additional low-rank transformation (e.g., B_q(A_q X̃)), which are summed together.
+- The low-rank bottleneck works as follows: A_q (size 8×2048) first projects the 2048-dimensional input down to 8 dimensions, then B_q (size 2048×8) projects it back up to 2048 dimensions. This constraint forces the weight update ΔW = B_q A_q to have rank at most 8.
+- This design is grounded in the LoRA paper's hypothesis that weight updates during adaptation have low "intrinsic rank"—meaning the changes needed for task adaptation occupy a low-dimensional subspace within the full parameter space.
+- The MLP blocks and layer normalizations remain completely frozen, preserving the general-purpose knowledge learned during pre-training.
+- This design allows us to update just 3.2M parameters (0.12%) instead of the full 2.6B, while still achieving strong task performance.  
+  
 ### 4.2 Training Configuration
 
 **Memory optimizations**:
@@ -287,7 +266,7 @@ Providing exactly one example per class (0-4) ensures:
 
 ---
 
-## 6. Model Card & Ethical Considerations
+## 6. Model Card & Considerations
 
 ### 6.1 Model Information
 

@@ -1,7 +1,8 @@
 # Prompt Engineering vs. Fine-Tuning for Sentiment Classification
 
-**Laura Li** | Generative AI Models in Theory and Practice | Vanderbilt University | December 4, 2025
-
+**Laura Li** | Generative AI Models in Theory and Practice | Vanderbilt University | December 4, 2025  
+* link to colab notebook: https://drive.google.com/file/d/1TnDh7Dh-3KNf4tiXUj-z8fS63fM6VIw1/view?usp=sharing
+* Not able to preview jupyter notebook on Github, need to download first
 ---
 
 ## 1. Problem Statement & Motivation

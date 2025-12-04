@@ -8,7 +8,7 @@
 
 ### The Challenge
 
-Decoder-only transformers (like GPT) have emerged as powerful general-purpose problem solvers, capable of performing tasks traditionally handled by encoder-only models (e.g., BERT for classification) or encoder-decoder architectures (e.g., T5 for translation). When adapting these models to specific tasks, practitioners face a critical choice:
+Decoder-only transformers are powerful general-purpose problem solvers, capable of performing tasks traditionally handled by encoder-only models (e.g., BERT for classification) or encoder-decoder architectures (e.g., T5 for translation). When adapting these models to specific tasks, practitioners face a critical choice:
 
 1. **Enhance the context** through prompt engineering (providing instructions and examples)
 2. **Update the model** through fine-tuning (modifying model weights)
@@ -110,7 +110,7 @@ Sentiment:
 
 **Configuration**: 0 trainable parameters, ~500-600 tokens per query, stratified example selection ensures complete class coverage
 
-**Why complete coverage matters**: Without an example from each class, the model lacks a reference point for that rating level, forcing extrapolation rather than interpolation. Our 5-shot approach (vs. 4-shot) ensures the model sees the full sentiment spectrum.
+**Why complete coverage matters**: Without an example from each class, the model lacks a reference point for that rating level, forcing extrapolation rather than interpolation. This 5-shot approach ensures the model sees the full sentiment spectrum.
 
 ### 3.5 Approach 3: LoRA Fine-Tuning
 
@@ -124,7 +124,7 @@ where B ∈ ℝ^(d×r), A ∈ ℝ^(r×k), rank r=8
 
 **Configuration**:
 - Trainable parameters: 3.2M (0.12% of 2.6B total)
-- Target modules: Query and value projections (q_proj, v_proj) in all 96 layers
+- Target modules: Query, Value, Key, Output projections in all 96 layers
 - Rank r=8, alpha=16, dropout=0.05
 - Training: 2 epochs, batch size 8 (1×8 gradient accumulation)
 - Optimizer: AdamW, lr=2×10⁻⁴, 50 warmup steps

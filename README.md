@@ -166,6 +166,10 @@ for each layer ℓ ∈ [1, 96]:
 return softmax(W_U · X)                        # Unembedding
 ```
 
+**Understanding the Algorithm**:
+
+This pseudocode shows how LoRA modifies the standard decoder transformer at lines 16 and 18. During the forward pass, each token representation flows through 96 transformer layers. In each layer's attention mechanism, the query (Q) and value (V) projections receive both the original frozen transformation (W_q X̃) and an additional low-rank transformation (B_q(A_q X̃)). The key insight is that A_q first projects the 2048-dimensional input down to 8 dimensions, then B_q projects it back up to 2048 dimensions. This "bottleneck" through rank-8 space forces the adaptation to learn a compressed, efficient representation of the task-specific changes needed. All other components—the key projection (K), output projection (W_o), MLP blocks, and layer normalizations—remain completely frozen, using only the knowledge from pre-training. This design allows us to adapt the model's behavior while training less than 1% of its parameters.
+
 **LoRA Implementation Details**:
 
 The critical modification occurs in attention projections:

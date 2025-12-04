@@ -272,8 +272,6 @@ Providing exactly one example per class (0-4) ensures:
 - Balanced representation prevents class bias
 - Clear boundaries between adjacent sentiment levels
 
-**Analogy**: Teaching someone to rate movies without showing any 5-star examples—they'd struggle to distinguish 4-star from 5-star reviews. Similarly, the model needs at least one instance of each rating level to understand the complete scale.
-
 ### 5.4 Model Size and Adaptation Strategy
 
 **For small models (2B params)**:

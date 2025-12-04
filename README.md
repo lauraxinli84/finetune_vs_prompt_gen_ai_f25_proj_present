@@ -168,7 +168,7 @@ return softmax(W_U · X)                        # Unembedding
 
 **Understanding the Algorithm**:
 
-- This pseudocode shows how LoRA modifies the standard decoder transformer at lines 16 and 18.
+- This pseudocode shows how LoRA modifies the standard decoder transformer.
 - In each layer's attention mechanism, the query (Q) and value (V) projections receive both the original frozen transformation (W_q X̃) and an additional low-rank transformation (B_q(A_q X̃)).
 - The key is that A_q first projects the 2048-dimensional input down to 8 dimensions, then B_q projects it back up to 2048 dimensions.
 - This "bottleneck" through rank-8 space forces the adaptation to learn a compressed, efficient representation of the task-specific changes needed.

@@ -450,14 +450,11 @@ pip install transformers==4.44.0 datasets==2.20.0 accelerate==0.33.0 peft==0.12.
 **Quick Start**:
 1. Clone repository and install dependencies
 2. Authenticate with Hugging Face (requires Gemma license agreement)
-3. Run zero-shot evaluation: `python evaluate_zero_shot.py`
-4. Run few-shot evaluation: `python evaluate_few_shot.py --n_shots 5`
-5. Train LoRA adapter: `python train_lora.py --rank 8 --dataset yelp`
-6. Evaluate fine-tuned model: `python evaluate_lora.py --adapter_path ./adapters/yelp_r8`
+3. Unzip and extract Amazon review datasets
+4. Run jupyter notebook (everything is contained in one notebook)
 
 **Hardware**:
 - Training: NVIDIA L4 GPU (22.5 GB VRAM) recommended
-- Inference: Can run on CPU for small batches; GPU recommended for production
 
 ---
 

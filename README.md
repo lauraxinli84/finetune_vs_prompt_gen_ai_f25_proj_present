@@ -16,7 +16,7 @@ Decoder-only transformers are powerful general-purpose problem solvers, capable 
 Classification tasks—typically solved using encoder-only models with classification heads—provide an ideal testbed for comparing these approaches.
 
 ### Research Question
-
+l
 **Which adaptation strategy delivers better performance for 5-class sentiment classification on decoder-only transformers: prompt engineering or parameter-efficient fine-tuning?**
 
 We evaluate three strategies:
@@ -316,27 +316,7 @@ Providing exactly one example per class (0-4) ensures:
 - Languages other than English
 - Domains significantly different from reviews (e.g., medical text, legal documents)
 
-### 6.3 Limitations & Biases
-
-**Known limitations**:
-1. **Domain specificity**: Trained only on restaurant reviews; performance degrades on dissimilar domains
-2. **Class imbalance sensitivity**: Requires balanced training data for optimal performance
-3. **Context length**: Limited to reviews ≤128 tokens (truncated during training)
-4. **Neutral class confusion**: 3-star reviews have higher error rate due to ambiguity
-
-**Bias considerations**:
-1. **Dataset bias**: Yelp reviews may over-represent certain demographics and geographic regions
-2. **Language style**: Model may perform worse on non-standard English or slang-heavy reviews
-3. **Cultural differences**: Sentiment expressions vary across cultures; model trained primarily on U.S. English
-4. **Implicit assumptions**: 5-star scale may not map uniformly across all review domains
-
-**Mitigation strategies**:
-- Evaluate on diverse test sets before deployment
-- Monitor performance across demographic groups
-- Provide confidence scores alongside predictions
-- Allow human review for borderline cases (3-star predictions)
-
-### 6.4 Training Data
+### 6.3 Training Data
 
 **Yelp Review Full**:
 - **Source**: Public Hugging Face dataset
@@ -368,7 +348,7 @@ Providing exactly one example per class (0-4) ensures:
 
 **About model adaptation**: The success of low-rank fine-tuning (r=8) suggests that task-specific knowledge occupies a low-dimensional subspace within the model's representation space. Pre-trained models already contain the necessary features—adaptation merely amplifies the relevant ones.
 
-**About in-context learning**: Small models (<7B parameters) show limited in-context learning capacity. While 5-shot prompting helps, gains are modest (6-10%) compared to fine-tuning (14-18%). This stands in contrast to large models (>100B params) where few-shot prompting approaches fine-tuning performance.
+**About in-context learning**: Small models (Gemma-2-2B-IT) show limited in-context learning capacity. While 5-shot prompting helps, gains are modest (6-10%) compared to fine-tuning (14-18%). This stands in contrast to large models (>100B params) where few-shot prompting approaches fine-tuning performance.
 
 **About cross-domain transfer**: The 6.9% accuracy drop from Yelp to Amazon (67.3% → 60.4%) is surprisingly small, indicating that sentiment classification is fundamentally domain-agnostic at the linguistic level, even though review content differs substantially.
 
@@ -432,7 +412,6 @@ The democratization of fine-tuning through methods like LoRA enables smaller org
 ## 9. Resources & Links
 
 ### Code & Models
-- **GitHub Repository**: [Project code and experiments]
 - **Gemma-2-2B-it**: https://huggingface.co/google/gemma-2-2b-it
 - **LoRA Implementation (PEFT)**: https://github.com/huggingface/peft
 
@@ -443,7 +422,6 @@ The democratization of fine-tuning through methods like LoRA enables smaller org
 ### Libraries
 - **Hugging Face Transformers**: https://github.com/huggingface/transformers
 - **PyTorch**: https://pytorch.org
-- **Google Colab**: https://colab.research.google.com
 
 ### Setup Instructions
 
